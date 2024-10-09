@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard - EduTrack</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f6f7fb;
+            padding: 20px;
+            margin: 0;
+        }
+
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Header Greeting */
+        .greeting-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .greeting {
+            font-size: 32px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+
+        .date {
+            font-size: 18px;
+            color: #7f8c8d;
+        }
+
+        /* Card Styles */
+        .card {
+            background-color: #ffffff;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        /* Subject Test Results */
+        .subject-results-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .chart-container {
+            width: 280px;
+            height: 280px;
+        }
+
+        .subject-info {
+            flex: 1;
+            margin-left: 40px;
+        }
+
+        .subject-info h2 {
+            font-size: 22px;
+            color: #34495e;
+        }
+
+        .subject-info p {
+            font-size: 18px;
+            margin: 8px 0;
+            color: #2c3e50;
+        }
+
+        .subject-info .total-score {
+            font-weight: bold;
+            font-size: 20px;
+            margin-top: 20px;
+        }
+
+        /* Quiz Section */
+        .quiz-section-container {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .quiz-box,
+        .scheduled-test {
+            background-color: #f0f4f8;
+            padding: 20px;
+            border-radius: 10px;
+            width: 48%;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .quiz-box h3,
+        .scheduled-test h3 {
+            font-size: 22px;
+            color: #2c3e50;
+        }
+
+        .quiz-box button,
+        .scheduled-test button {
+            background-color: #3498db;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 5px;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .quiz-box button:hover,
+        .scheduled-test button:hover {
+            background-color: #2980b9;
+        }
+
+        /* Performance Summary */
+        .performance-summary {
+            background-color: #3498db;
+            color: white;
+            text-align: center;
+            padding: 20px;
+            border-radius: 10px;
+            margin-top: 20px;
+        }
+
+        .performance-summary h3 {
+            font-size: 22px;
+            margin-bottom: 20px;
+        }
+
+        .performance-summary p {
+            font-size: 18px;
+            margin: 5px 0;
+        }
+
+        /* Quiz Performance Chart */
+        .quiz-performance {
+            background-color: #ffffff;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .quiz-performance h2 {
+            font-size: 22px;
+            color: #2c3e50;
+            margin-bottom: 20px;
+        }
+
+        .quiz-performance .chart-container {
+            width: 100%;
+            height: 280px;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+    <div class="dashboard-container">
+        <!-- Header Section -->
+        <div class="greeting-container">
+            <div class="greeting">Good morning, {{ student['name'] }}</div>
+            <div class="date">Today, {{ current_date }}</div>
+        </div>
+
+        <!-- Subject Test Results -->
+        <div class="card subject-results-container">
+            <div class="chart-container">
+                <canvas id="subjectChart"></canvas>
+            </div>
+            <div class="subject-info">
+                <h2>Subject Test Results</h2>
+                <p>Tamil: {{ student['tamil'] }}%</p>
+                <p>English: {{ student['english'] }}%</p>
+                <p>Math: {{ student['math'] }}%</p>
+                <p>Science: {{ student['science'] }}%</p>
+                <p>Social: {{ student['social'] }}%</p>
+
+                <p class="total-score">Overall Performance: {{ overall_performance }}%</p>
+            </div>
+        </div>
+
+        <!-- Quiz Performance -->
+        <div class="quiz-performance">
+            <h2>Overall Quiz Performance</h2>
+            <div class="chart-container">
+                <canvas id="quizChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Quiz Section -->
+        <div class="quiz-section-container">
+            <div class="quiz-box">
+                <h3>Quiz</h3>
+                <button>Go To Quiz</button>
+            </div>
+            <div class="scheduled-test">
+                <h3>Scheduled Test</h3>
+                <p>Math Quiz in 42 Minutes</p>
+                <button>Edit</button>
+            </div>
+        </div>
+
+        <!-- Performance Summary -->
+        <div class="performance-summary">
+            <h3>Overall Performance Quiz</h3>
+            <p>Today's Test: 80%</p>
+            <p>Weekly Performance: 40%</p>
+            <p>Monthly Performance: 64%</p>
+            <p>Yearly Performance: 29%</p>
+            <button>See Overall Results</button>
+        </div>
+    </div>
+
+    <!-- Chart.js Scripts -->
+    <script>
+        // Subject Performance Pie Chart
+        const subjectCtx = document.getElementById('subjectChart').getContext('2d');
+        const subjectChart = new Chart(subjectCtx, {
+            type: 'pie',
+            data: {
+                labels: ['Tamil', 'English', 'Math', 'Science', 'Social'],
+                datasets: [{
+                    data: [
+                        {{ student['tamil'] }},
+                        {{ student['english'] }},
+                        {{ student['math'] }},
+                        {{ student['science'] }},
+                        {{ student['social'] }}
+                    ],
+                    backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF'],
+                    borderColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF'],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    title: {
+                        display: true,
+                        text: 'Subject Test Results'
+                    }
+                }
+            }
+        });
+
+        // Quiz Performance Line Chart
+        const quizCtx = document.getElementById('quizChart').getContext('2d');
+        const quizChart = new Chart(quizCtx, {
+            type: 'line',
+            data: {
+                labels: {{ quiz_dates | safe }},  // Dynamic quiz dates
+                datasets: [{
+                    label: 'Quiz Scores',
+                    data: {{ quiz_scores | safe }},  // Dynamic quiz scores
+                    borderColor: '#FF6384',
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    fill: true
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 10
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Feedback - EduTrack</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        /* Feedback Layout */
+        .feedback-container {
+            width: 80%;
+            max-width: 1000px;
+            margin: 30px auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 32px;
+            color: #2C3E50;
+        }
+
+        p {
+            font-size: 18px;
+            color: #3498DB;
+            font-weight: bold;
+        }
+
+        .feedback-list {
+            margin-top: 30px;
+            text-align: left;
+        }
+
+        .feedback-list h3 {
+            font-size: 18px;
+            color: #2C3E50;
+        }
+
+        .feedback-list p {
+            font-size: 16px;
+            color: #555;
+        }
+
+        .feedback-list .correct-answer {
+            color: #27AE60;
+            font-weight: bold;
+        }
+
+        .feedback-list .wrong-answer {
+            color: #E74C3C;
+            font-weight: bold;
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 40px;
+        }
+
+        .action-buttons a {
+            text-decoration: none;
+        }
+
+        .action-buttons button {
+            padding: 15px 30px;
+            background-color: #3498DB;
+            color: white;
+            border: none;
+            font-size: 18px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        .action-buttons button:hover {
+            background-color: #2980B9;
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="feedback-container">
+        <h1>Quiz Feedback</h1>
+        <p>You got {{ correct_count }} out of {{ quiz_questions | length }} correct!</p>
+
+        <!-- Detailed Feedback List -->
+        <div class="feedback-list">
+            {% for feedback in feedback %}
+            <div class="question-feedback">
+                <h3>{{ loop.index }}. {{ feedback['question'] }}</h3>
+                <p class="wrong-answer">Your Answer: {{ feedback['selected'] }}</p>
+                <p class="correct-answer">Correct Answer: {{ feedback['correct'] }}</p>
+                <p>{{ feedback['explanation'] }}</p>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+            <a href="{{ url_for('student_home') }}">
+                <button>Go Back to Home</button>
+            </a>
+            <a href="{{ url_for('quiz_page') }}">
+                <button>Take Another Quiz</button>
+            </a>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2024 EduTrack. All rights reserved.</p>
+    </footer>
+</body>
+</html>

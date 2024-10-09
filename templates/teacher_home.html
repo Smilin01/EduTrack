@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teacher Portal - EduTrack</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Main Container */
+        .container {
+            width: 90%;
+            max-width: 1200px;
+            margin: 30px auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        h1, h2 {
+            text-align: center;
+            color: #2C3E50;
+        }
+
+        /* Table Styling */
+        table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+        }
+
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: center;
+            font-size: 14px;
+            color: #333;
+        }
+
+        th {
+            background-color: #3498DB;
+            color: white;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        /* Button Styling */
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .action-buttons button {
+            padding: 10px 20px;
+            background-color: #3498DB;
+            color: white;
+            border: none;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        .action-buttons button:hover {
+            background-color: #2980B9;
+            transform: scale(1.05);
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        /* Chart Container */
+        .charts-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            margin-top: 30px;
+        }
+
+        .chart-box {
+            flex: 1 1 45%;
+            margin-bottom: 30px;
+        }
+
+        .chart-container {
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        /* Logout Button */
+        .logout-button {
+            padding: 10px 20px;
+            background-color: #E74C3C;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            border-radius: 5px;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            margin-top: 20px;
+        }
+
+        .logout-button:hover {
+            background-color: #C0392B;
+            transform: scale(1.05);
+        }
+    </style>
+    <script>
+        // Toggle edit form for a specific student
+        function toggleEditForm(studentId) {
+            const editButton = document.getElementById(`edit-button-${studentId}`);
+            const form = document.getElementById(`edit-form-${studentId}`);
+            if (form.classList.contains('hidden')) {
+                form.classList.remove('hidden');
+                editButton.textContent = "Cancel Edit";
+            } else {
+                form.classList.add('hidden');
+                editButton.textContent = "Edit Student Data";
+            }
+        }
+
+        // Toggle new student form
+        function toggleNewStudentForm() {
+            const addButton = document.getElementById('add-student-button');
+            const form = document.getElementById('new-student-form');
+            if (form.classList.contains('hidden')) {
+                form.classList.remove('hidden');
+                addButton.textContent = "Cancel";
+            } else {
+                form.classList.add('hidden');
+                addButton.textContent = "Add New Student";
+            }
+        }
+    </script>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Header -->
+        <h1>Welcome to the Teacher Portal</h1>
+        <p>Manage student data and track their performance below.</p>
+
+        <!-- Logout Button -->
+        <div class="logout-container">
+            <form action="{{ url_for('logout') }}" method="GET">
+                <button class="logout-button">Logout</button>
+            </form>
+        </div>
+
+        <!-- Student Table for Editing -->
+        <table border="1" cellpadding="10" cellspacing="0">
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Roll No</th>
+                    <th>Date of Birth</th>
+                    <th>Standard</th>
+                    <th>Term</th>
+                    <th>Tamil</th>
+                    <th>English</th>
+                    <th>Math</th>
+                    <th>Science</th>
+                    <th>Social</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for student in students %}
+                <tr>
+                    <td>{{ student['name'] }}</td>
+                    <td>{{ student['roll_number'] }}</td>
+                    <td>{{ student['dob'] }}</td>
+                    <td>{{ student['standard'] }}</td>
+                    <td>{{ student['term'] }}</td>
+                    <td>{{ student['tamil'] }}</td>
+                    <td>{{ student['english'] }}</td>
+                    <td>{{ student['math'] }}</td>
+                    <td>{{ student['science'] }}</td>
+                    <td>{{ student['social'] }}</td>
+                    <td>
+                        <button id="edit-button-{{ student['id'] }}" onclick="toggleEditForm({{ student['id'] }})">Edit Student Data</button>
+                    </td>
+                </tr>
+                <!-- Hidden form to edit student data -->
+                <tr id="edit-form-{{ student['id'] }}" class="hidden">
+                    <form action="{{ url_for('update_student', student_id=student['id']) }}" method="POST">
+                        <td><input type="text" name="name" value="{{ student['name'] }}" required></td>
+                        <td><input type="text" name="roll_number" value="{{ student['roll_number'] }}" required></td>
+                        <td><input type="date" name="dob" value="{{ student['dob'] }}" required></td>
+                        <td><input type="text" name="standard" value="{{ student['standard'] }}" required></td>
+                        <td><input type="text" name="term" value="{{ student['term'] }}" required></td>
+                        <td><input type="number" name="tamil" value="{{ student['tamil'] }}" required></td>
+                        <td><input type="number" name="english" value="{{ student['english'] }}" required></td>
+                        <td><input type="number" name="math" value="{{ student['math'] }}" required></td>
+                        <td><input type="number" name="science" value="{{ student['science'] }}" required></td>
+                        <td><input type="number" name="social" value="{{ student['social'] }}" required></td>
+                        <td><button type="submit">Save Changes</button></td>
+                    </form>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <!-- Button to Show New Student Form -->
+        <div class="action-buttons">
+            <button id="add-student-button" onclick="toggleNewStudentForm()">Add New Student</button>
+        </div>
+
+        <!-- Hidden form to add new student -->
+        <div id="new-student-form" class="hidden">
+            <h3>Add New Student</h3>
+            <form action="{{ url_for('teacher_home') }}" method="POST">
+                <input type="hidden" name="add_student" value="1">
+                <label>Roll Number: <input type="text" name="roll_number" required></label><br>
+                <label>Name: <input type="text" name="name" required></label><br>
+                <label>Date of Birth: <input type="date" name="dob" required></label><br>
+                <label>Standard: <input type="text" name="standard" required></label><br>
+                <label>Term: <input type="text" name="term" required></label><br>
+                <label>Tamil: <input type="number" name="tamil" required></label><br>
+                <label>English: <input type="number" name="english" required></label><br>
+                <label>Math: <input type="number" name="math" required></label><br>
+                <label>Science: <input type="number" name="science" required></label><br>
+                <label>Social: <input type="number" name="social" required></label><br>
+                <button type="submit">Submit New Student</button>
+            </form>
+        </div>
+
+        <!-- Charts Section -->
+        <h2>Students' Performance Dashboard</h2>
+        <div class="charts-container">
+            {% for student in students %}
+            <div class="chart-box">
+                <h3>{{ student['name'] }} (Roll No: {{ student['roll_number'] }}) - Subject Performance</h3>
+                <div class="chart-container">
+                    <canvas id="subjectChart-{{ student['roll_number'] }}"></canvas>
+                </div>
+
+                <h3>{{ student['name'] }} (Roll No: {{ student['roll_number'] }}) - Quiz Performance</h3>
+                <div class="chart-container">
+                    {% if quiz_scores[student['id']] %}
+                    <canvas id="quizChart-{{ student['roll_number'] }}"></canvas>
+                    {% else %}
+                    <p>No quiz data available for {{ student['name'] }}</p>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Chart Scripts -->
+    <script>
+        {% for student in students %}
+        // Subject Performance Pie Chart
+        const ctxSubject{{ student['roll_number'] }} = document.getElementById('subjectChart-{{ student['roll_number'] }}').getContext('2d');
+        const subjectChart{{ student['roll_number'] }} = new Chart(ctxSubject{{ student['roll_number'] }}, {
+            type: 'pie',
+            data: {
+                labels: ['Tamil', 'English', 'Math', 'Science', 'Social'],
+                datasets: [{
+                    data: [
+                        {{ student['tamil'] }},
+                        {{ student['english'] }},
+                        {{ student['math'] }},
+                        {{ student['science'] }},
+                        {{ student['social'] }}
+                    ],
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.2)',
+                        'rgba(54, 162, 235, 0.2)',
+                        'rgba(255, 206, 86, 0.2)',
+                        'rgba(75, 192, 192, 0.2)',
+                        'rgba(153, 102, 255, 0.2)'
+                    ],
+                    borderColor: [
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: {
+                        position: 'top',
+                    },
+                    title: {
+                        display: true,
+                        text: '{{ student["name"] }}\'s Subject Performance'
+                    }
+                }
+            }
+        });
+
+        {% if quiz_scores[student['id']] %}
+        // Quiz Performance Line Chart
+        const ctxQuiz{{ student['roll_number'] }} = document.getElementById('quizChart-{{ student['roll_number'] }}').getContext('2d');
+        const quizChart{{ student['roll_number'] }} = new Chart(ctxQuiz{{ student['roll_number'] }}, {
+            type: 'line',
+            data: {
+                labels: {{ quiz_dates[student['id']] | safe }},
+                datasets: [{
+                    label: 'Quiz Scores',
+                    data: {{ quiz_scores[student['id']] | safe }},
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 2,
+                    fill: false
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 10  // Assuming quiz scores are out of 10
+                    }
+                }
+            }
+        });
+        {% endif %}
+        {% endfor %}
+    </script>
+</body>
+</html>

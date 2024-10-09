@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz - EduTrack</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        /* Page Layout */
+        .quiz-container {
+            width: 80%;
+            max-width: 1000px;
+            margin: 30px auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        }
+
+        h1, h2 {
+            text-align: center;
+            color: #2C3E50;
+        }
+
+        /* Question Styling */
+        .question {
+            margin-bottom: 30px;
+        }
+
+        .question h3 {
+            font-size: 18px;
+            color: #2C3E50;
+        }
+
+        select {
+            width: 100%;
+            padding: 12px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            margin-top: 10px;
+            font-size: 16px;
+        }
+
+        /* Submit Button */
+        .submit-button {
+            display: flex;
+            justify-content: center;
+            margin-top: 40px;
+        }
+
+        .submit-button button {
+            padding: 15px 40px;
+            background-color: #3498DB;
+            color: white;
+            border: none;
+            font-size: 18px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+        }
+
+        .submit-button button:hover {
+            background-color: #2980B9;
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="quiz-container">
+        <h1>{{ subject }} Quiz</h1>
+        <p>Answer the following questions:</p>
+
+        <form action="{{ url_for('submit_quiz') }}" method="POST">
+            {% for question in quiz_questions %}
+            <div class="question">
+                <h3>{{ loop.index }}. {{ question['text'] }}</h3>
+                <select name="answer{{ loop.index }}" required>
+                    <option value="" disabled selected>Select your answer</option>
+                    {% for option in question['options'] %}
+                    <option value="{{ option }}">{{ option }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            {% endfor %}
+            <div class="submit-button">
+                <button type="submit">Submit Quiz</button>
+            </div>
+        </form>
+    </div>
+
+    <footer>
+        <p>&copy; 2024 EduTrack. All rights reserved.</p>
+    </footer>
+</body>
+</html>
